@@ -67,6 +67,15 @@ The workflows run against the template at the repo root of whichever branch is c
 
 Starting state of the site: Storage and Key Vault show "Not set up yet", Legacy storage shows "Connected with a shared key". After the ticket deploys, Storage and Key Vault go green and Legacy storage shows "Retired". Test locally with `pip install -r app/requirements.txt` and `flask --app app/app.py run`.
 
+## Build the demo image locally
+
+```sh
+docker build --build-arg APP_VERSION=v42 -t orders-web:v42 ./app
+docker run --rm -p 8080:80 orders-web:v42
+```
+
+Open `http://localhost:8080` for the status page. Locally every card shows "Not set up yet" except Legacy storage, which is controlled by `LEGACY_STORAGE_NAME`.
+
 ## Deploy
 
 On `after-ticket`, run `./scripts/deploy.ps1 -Environment prod` (Entra first, then the stack). On `main` the stack alone is enough:
