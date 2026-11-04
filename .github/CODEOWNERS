@@ -1,0 +1,6 @@
+# Replace with your team handle. Prod changes need review (also enforced by the `prod` environment).
+*                       @SydneyhSmith
+/.github/               @SydneyhSmith
+*.bicep                 @SydneyhSmith
+*.bicepparam            @SydneyhSmith
+*.snapshot.json         @SydneyhSmith
