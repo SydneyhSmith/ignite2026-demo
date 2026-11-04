@@ -167,12 +167,12 @@
       }
     },
     {
-      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web/providers/Microsoft.Authorization/roleAssignments/c6fa3514-2f48-5201-8a76-d6ed6a46d481",
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web/providers/Microsoft.Authorization/roleAssignments/18ea3efe-986f-563e-b6e7-91ba80e3c09b",
       "type": "Microsoft.Authorization/roleAssignments",
-      "name": "c6fa3514-2f48-5201-8a76-d6ed6a46d481",
+      "name": "18ea3efe-986f-563e-b6e7-91ba80e3c09b",
       "apiVersion": "2022-04-01",
       "properties": {
-        "principalId": "[reference('ordersApiSp').id]",
+        "principalId": "00000000-0000-0000-0000-000000000000",
         "principalType": "ServicePrincipal",
         "roleDefinitionId": "[roleDefinitions('Contributor').id]"
       }
@@ -260,13 +260,13 @@
       }
     },
     {
-      "id": "[extensionResourceId('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersprodlfhtdbndyez6', 'Microsoft.Authorization/roleAssignments', coalesce(null(), guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersprodlfhtdbndyez6', reference('blobReaders').id, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')))]",
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersprodlfhtdbndyez6/providers/Microsoft.Authorization/roleAssignments/d343f50d-1508-5ea5-868c-16a96198128c",
       "type": "Microsoft.Authorization/roleAssignments",
-      "name": "[coalesce(null(), guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersprodlfhtdbndyez6', reference('blobReaders').id, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/2a2b9908-6ea1-4ae2-8e65-a410df84e7d1'))]",
+      "name": "d343f50d-1508-5ea5-868c-16a96198128c",
       "apiVersion": "2022-04-01",
       "properties": {
         "roleDefinitionId": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/2a2b9908-6ea1-4ae2-8e65-a410df84e7d1",
-        "principalId": "[reference('blobReaders').id]",
+        "principalId": "00000000-0000-0000-0000-000000000000",
         "description": "Members of the blob readers group can read blob data",
         "principalType": "Group",
         "condition": null,
@@ -380,53 +380,15 @@
         },
         "value": "[parameters('secrets')[0].value]"
       }
-    },
-    {
-      "properties": {
-        "uniqueName": "app-orders-prod-orders-api",
-        "displayName": "app-orders-prod-orders-api",
-        "signInAudience": "AzureADMyOrg"
-      },
-      "type": "Microsoft.Graph/applications@v1.0"
-    },
-    {
-      "properties": {
-        "name": "app-orders-prod-orders-api/github-main",
-        "issuer": "https://token.actions.githubusercontent.com",
-        "subject": "repo:sydneyhsmith/orders-api:ref:refs/heads/main",
-        "audiences": [
-          "api://AzureADTokenExchange"
-        ]
-      },
-      "type": "Microsoft.Graph/applications/federatedIdentityCredentials@v1.0"
-    },
-    {
-      "properties": {
-        "uniqueName": "sg-orders-prod-blob-readers",
-        "displayName": "sg-orders-prod-blob-readers",
-        "description": "Read access to the orders-prod blob storage data",
-        "mailEnabled": false,
-        "mailNickname": "sg-orders-prod-blob-readers",
-        "securityEnabled": true
-      },
-      "type": "Microsoft.Graph/groups@v1.0"
-    },
-    {
-      "properties": {
-        "appId": "[reference('ordersApi').appId]"
-      },
-      "type": "Microsoft.Graph/servicePrincipals@v1.0"
     }
   ],
   "diagnostics": [],
   "outputs": {
     "keyVaultName": "[reference(resourceId('214eeb00-e5bc-4ff6-ab4c-170688d8174b', 'rg-contoso-orders-prod', 'Microsoft.Resources/deployments', format('keyVault-{0}', uniqueString('keyVault', deployment().name))), '2025-04-01').outputs.name.value]",
-    "storageAccountName": "[reference(resourceId('214eeb00-e5bc-4ff6-ab4c-170688d8174b', 'rg-contoso-orders-prod', 'Microsoft.Resources/deployments', format('storage-{0}', uniqueString('storage', deployment().name))), '2025-04-01').outputs.name.value]",
-    "usingSharedWorkspace": "[not(equals(tryGet(reference('/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-platform-monitoring/providers/Microsoft.OperationalInsights/workspaces/law-platform-shared', '2023-09-01', 'full'), 'properties'), null()))]",
     "siteUrl": "[format('https://{0}', reference('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web', '2024-03-01').configuration.ingress.fqdn)]",
-    "legacyStorageAccountName": "stlegacyjq5rrypxlicqk",
-    "blobReadersGroupId": "[reference('blobReaders').id]",
-    "ordersApiClientId": "[reference('ordersApi').appId]",
-    "webPrincipalId": "[reference('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web', '2024-03-01', 'full').identity.principalId]"
+    "webPrincipalId": "[reference('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web', '2024-03-01', 'full').identity.principalId]",
+    "usingSharedWorkspace": "[not(equals(tryGet(reference('/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-platform-monitoring/providers/Microsoft.OperationalInsights/workspaces/law-platform-shared', '2023-09-01', 'full'), 'properties'), null()))]",
+    "storageAccountName": "[reference(resourceId('214eeb00-e5bc-4ff6-ab4c-170688d8174b', 'rg-contoso-orders-prod', 'Microsoft.Resources/deployments', format('storage-{0}', uniqueString('storage', deployment().name))), '2025-04-01').outputs.name.value]",
+    "legacyStorageAccountName": "stlegacyjq5rrypxlicqk"
   }
 }

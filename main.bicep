@@ -1,12 +1,11 @@
 // =====================================================================
 // Contoso Orders - AFTER the ticket
-// Baseline + AVM storage + AVM Key Vault + Entra (Microsoft Graph).
+// Baseline + AVM storage + AVM Key Vault.
 // Deployed as a Deployment Stack per environment (dev, prod).
+// The Entra objects live in entra.bicep and are deployed first.
 // =====================================================================
 
 targetScope = 'resourceGroup'
-
-extension microsoftGraphV1
 
 @description('Short environment name used in resource names.')
 @allowed([
@@ -38,8 +37,15 @@ param placeholderImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
 @description('Optional image to deploy (a release). When omitted, the image currently running is kept.')
 param webImage string?
 
-@description('GitHub account or organization that owns the app team\'s orders-api repository.')
-param githubOwner string
+@description('Object ID of the Entra security group (from entra.bicep) whose members can read blob data.')
+@minLength(36)
+@maxLength(36)
+param blobReaderGroupObjectId string
+
+@description('Object ID of the app team\'s service principal (from entra.bicep). It can update the container app.')
+@minLength(36)
+@maxLength(36)
+param appTeamPrincipalId string
 
 @description('Tags applied to every resource.')
 param tags object = {}
@@ -57,9 +63,6 @@ var newStorageName = take('st${toLower(appName)}${environmentName}${uniqueString
 var keyVaultName = take('kv-${appName}-${environmentName}-${uniqueString(resourceGroup().id)}', 24)
 var storageBlobEndpoint = 'https://${newStorageName}.blob.${environment().suffixes.storage}/'
 var keyVaultUri = 'https://${keyVaultName}${environment().suffixes.keyvaultDns}/'
-
-// uniqueName is also used in the role assignment name, which must be known at the start of the deployment.
-var ordersApiUniqueName = 'app-${suffix}-orders-api'
 
 // ---------------------------------------------------------------------
 // Monitoring
@@ -249,8 +252,7 @@ module storage 'br/public:avm/res/storage/storage-account:0.33.1' = {
         description: 'The web app lists containers'
       }
       {
-        // The Entra group declared below: no copied object IDs.
-        principalId: blobReaders.id
+        principalId: blobReaderGroupObjectId
         principalType: 'Group'
         roleDefinitionIdOrName: 'Storage Blob Data Reader'
         description: 'Members of the blob readers group can read blob data'
@@ -290,46 +292,15 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.14.2' = {
 }
 
 // ---------------------------------------------------------------------
-// Entra ID (Microsoft Graph Bicep extension)
-// uniqueName makes these idempotent: Graph uses POST, ARM uses PUT.
-// Do NOT use @nullIfNotFound() or `existing` on Entra resources.
+// The app team's pipeline can ship new images, scoped to the container app only.
+// The service principal is created by entra.bicep.
 // ---------------------------------------------------------------------
 
-resource blobReaders 'Microsoft.Graph/groups@v1.0' = {
-  uniqueName: 'sg-${suffix}-blob-readers'
-  displayName: 'sg-${suffix}-blob-readers'
-  description: 'Read access to the ${suffix} blob storage data'
-  mailEnabled: false
-  mailNickname: 'sg-${suffix}-blob-readers'
-  securityEnabled: true
-}
-
-resource ordersApi 'Microsoft.Graph/applications@v1.0' = {
-  uniqueName: ordersApiUniqueName
-  displayName: 'app-${suffix}-orders-api'
-  signInAudience: 'AzureADMyOrg'
-
-  // GitHub OIDC: the app team's repo signs in as this app, with no secrets.
-  resource githubMain 'federatedIdentityCredentials@v1.0' = {
-    name: '${ordersApiUniqueName}/github-main'
-    issuer: 'https://token.actions.githubusercontent.com'
-    subject: 'repo:${githubOwner}/orders-api:ref:refs/heads/main'
-    audiences: [
-      'api://AzureADTokenExchange'
-    ]
-  }
-}
-
-resource ordersApiSp 'Microsoft.Graph/servicePrincipals@v1.0' = {
-  appId: ordersApi.appId
-}
-
-// The app team's pipeline can ship new images, scoped to the container app only.
 resource appTeamDeploys 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: web
-  name: guid(web.id, ordersApiUniqueName, 'Contributor')
+  name: guid(web.id, appTeamPrincipalId, 'Contributor')
   properties: {
-    principalId: ordersApiSp.id
+    principalId: appTeamPrincipalId
     principalType: 'ServicePrincipal'
     roleDefinitionId: roleDefinitions('Contributor').id
   }
@@ -341,5 +312,3 @@ output usingSharedWorkspace bool = sharedLaw.?properties != null
 output legacyStorageAccountName string = legacyStorage.name
 output storageAccountName string = storage.outputs.name
 output keyVaultName string = keyVault.outputs.name
-output ordersApiClientId string = ordersApi.appId
-output blobReadersGroupId string = blobReaders.id

@@ -1,6 +1,9 @@
 name: Contoso Orders infrastructure
 
-# Assumes the template lives at the repo root (main.bicep, prod.bicepparam, prod.snapshot.json).
+# Entra objects (entra.bicep) are deployed first as a regular deployment, only after approval.
+# Their object IDs are passed to the stack through the BLOB_READER_GROUP_ID and ORDERS_API_SP_ID
+# environment variables, which prod.bicepparam reads. For pull requests, set the same two values as
+# repository variables (copy them from the deploy job summary after the first deploy).
 on:
   pull_request:
     branches: [main]
@@ -74,6 +77,9 @@ jobs:
 
       - name: What-if
         uses: azure/bicep-deploy@v2
+        env:
+          BLOB_READER_GROUP_ID: ${{ vars.BLOB_READER_GROUP_ID }}
+          ORDERS_API_SP_ID: ${{ vars.ORDERS_API_SP_ID }}
         with:
           type: deploymentStack
           operation: whatIf
@@ -102,8 +108,34 @@ jobs:
           tenant-id: ${{ vars.AZURE_TENANT_ID }}
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Deploy Entra objects
+        id: entra
+        uses: azure/bicep-deploy@v2
+        with:
+          type: deployment
+          operation: create
+          name: contoso-orders-entra-prod
+          scope: resourceGroup
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          resource-group-name: ${{ env.RESOURCE_GROUP }}
+          parameters-file: ./entra.prod.bicepparam
+          bicep-version: ${{ env.BICEP_VERSION }}
+
+      - name: Show Entra object IDs
+        run: |
+          {
+            echo "### Entra object IDs"
+            echo "Set these as repository variables for PR what-if:"
+            echo "- BLOB_READER_GROUP_ID: \`${{ steps.entra.outputs.blobReaderGroupObjectId }}\`"
+            echo "- ORDERS_API_SP_ID: \`${{ steps.entra.outputs.ordersApiServicePrincipalObjectId }}\`"
+            echo "- orders-api client ID: \`${{ steps.entra.outputs.ordersApiClientId }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Create stack
         uses: azure/bicep-deploy@v2
+        env:
+          BLOB_READER_GROUP_ID: ${{ steps.entra.outputs.blobReaderGroupObjectId }}
+          ORDERS_API_SP_ID: ${{ steps.entra.outputs.ordersApiServicePrincipalObjectId }}
         with:
           type: deploymentStack
           operation: create
