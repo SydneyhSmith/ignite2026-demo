@@ -48,21 +48,15 @@ jobs:
           sudo mv bicep /usr/local/bin/bicep
           bicep --version
 
-      - uses: azure/login@v3
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       # Fails when the committed snapshot no longer matches what the template would deploy.
       # Runs offline with the fixed scope embedded in the snapshot, not the deployment target.
       # Regenerate locally with the same flags and commit the result if the change is intended.
       - name: Validate prod snapshot
         run: >
           bicep snapshot prod.bicepparam --mode validate
-          --subscription-id "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
-          --resource-group "$RESOURCE_GROUP"
-          --location "$LOCATION"
+          --subscription-id 214eeb00-e5bc-4ff6-ab4c-170688d8174b
+          --resource-group rg-contoso-orders-prod
+          --location westus3
 
   whatif:
     name: Stack what-if (prod)
@@ -70,8 +64,24 @@ jobs:
     if: ${{ !cancelled() && github.event_name == 'pull_request' }}
     needs: validate
     runs-on: ubuntu-latest
+    env:
+      BLOB_READER_GROUP_ID: ${{ vars.BLOB_READER_GROUP_ID }}
+      ORDERS_API_SP_ID: ${{ vars.ORDERS_API_SP_ID }}
     steps:
       - uses: actions/checkout@v7
+
+      - name: Validate what-if object IDs
+        shell: bash
+        run: |
+          invalid=0
+          for name in BLOB_READER_GROUP_ID ORDERS_API_SP_ID; do
+            value="$(printenv "$name")"
+            if [[ ! "$value" =~ ^[[:xdigit:]]{8}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{4}-[[:xdigit:]]{12}$ || "$value" == "00000000-0000-0000-0000-000000000000" ]]; then
+              echo "::error::Set repository Actions variable $name to the real Entra object ID from the deploy job summary (not an application/client ID or placeholder)."
+              invalid=1
+            fi
+          done
+          exit "$invalid"
 
       - uses: azure/login@v3
         with:
@@ -81,9 +91,6 @@ jobs:
 
       - name: What-if
         uses: azure/bicep-deploy@v2
-        env:
-          BLOB_READER_GROUP_ID: ${{ vars.BLOB_READER_GROUP_ID }}
-          ORDERS_API_SP_ID: ${{ vars.ORDERS_API_SP_ID }}
         with:
           type: deploymentStack
           operation: whatIf
