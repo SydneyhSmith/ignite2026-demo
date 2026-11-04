@@ -1,0 +1,117 @@
+name: Contoso Orders infrastructure
+
+# Assumes the template lives at the repo root (main.bicep, prod.bicepparam, prod.snapshot.json).
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.bicep'
+      - '**.bicepparam'
+      - '**.snapshot.json'
+      - '.github/workflows/deploy.yml'
+  push:
+    branches: [main]
+    paths:
+      - '**.bicep'
+      - '**.bicepparam'
+      - '**.snapshot.json'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # OIDC login, no secrets
+
+env:
+  # Keep in step with the Bicep version used to generate the committed snapshots.
+  BICEP_VERSION: v0.48.1
+  STACK_NAME: contoso-orders-prod
+  RESOURCE_GROUP: rg-contoso-orders-prod
+  LOCATION: westus3
+
+jobs:
+  validate:
+    name: Snapshot validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Bicep CLI
+        run: |
+          curl -Lo bicep "https://github.com/Azure/bicep/releases/download/${BICEP_VERSION}/bicep-linux-x64"
+          chmod +x bicep
+          sudo mv bicep /usr/local/bin/bicep
+          bicep --version
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      # Fails when the committed snapshot no longer matches what the template would deploy.
+      # Regenerate locally with the same flags and commit the result if the change is intended.
+      - name: Validate prod snapshot
+        run: >
+          bicep snapshot prod.bicepparam --mode validate
+          --subscription-id "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+          --resource-group "$RESOURCE_GROUP"
+          --location "$LOCATION"
+
+  whatif:
+    name: Stack what-if (prod)
+    if: github.event_name == 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: What-if
+        uses: azure/bicep-deploy@v2
+        with:
+          type: deploymentStack
+          operation: whatIf
+          name: ${{ env.STACK_NAME }}
+          scope: resourceGroup
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          resource-group-name: ${{ env.RESOURCE_GROUP }}
+          parameters-file: ./prod.bicepparam
+          bicep-version: ${{ env.BICEP_VERSION }}
+          action-on-unmanage-resources: delete
+          deny-settings-mode: none
+
+  deploy:
+    name: Deploy stack (prod)
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: validate
+    runs-on: ubuntu-latest
+    # Required reviewers on this environment gate the job.
+    environment: prod
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Create stack
+        uses: azure/bicep-deploy@v2
+        with:
+          type: deploymentStack
+          operation: create
+          name: ${{ env.STACK_NAME }}
+          scope: resourceGroup
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          resource-group-name: ${{ env.RESOURCE_GROUP }}
+          parameters-file: ./prod.bicepparam
+          bicep-version: ${{ env.BICEP_VERSION }}
+          action-on-unmanage-resources: delete
+          deny-settings-mode: none
