@@ -29,6 +29,7 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 | `.github/workflows/deploy.yml` | Snapshot validate, stack what-if on PRs, stack create on merge (gated by the `prod` environment) |
 | `.github/workflows/lint.yml` | Builds every `.bicep` and `.bicepparam` on PRs (no Azure login) |
 | `.github/workflows/build-image.yml` | Stands in for the app team's pipeline that builds `orders-web:<version>` |
+| `Dockerfile` | Minimal demo website on port 80, with the build version at `/version.txt` |
 | `.github/pull_request_template.md`, `CODEOWNERS`, `dependabot.yml` | PR automation |
 
 ## Branches and tags
@@ -66,6 +67,16 @@ The workflows run against the template at the repo root of whichever branch is c
 - The `orders-web` package on GitHub Container Registry set to **public**. Publish it by running the `build-image` workflow (version `v42`), then deploy with `release-v42.bicepparam` so the container app pulls it.
 
 Starting state of the site: Storage and Key Vault show "Not set up yet", Legacy storage shows "Connected with a shared key". After the ticket deploys, Storage and Key Vault go green and Legacy storage shows "Retired". Test locally with `pip install -r app/requirements.txt` and `flask --app app/app.py run`.
+
+## Build the demo image locally
+
+```sh
+docker build --build-arg APP_VERSION=v42 -t orders-web:v42 .
+docker run --rm -p 8080:80 orders-web:v42
+```
+
+Open `http://localhost:8080` for the demo landing page or `/version.txt` for the image version.
+This is a minimal stand-in for the app team's website, not the full Orders application.
 
 ## Deploy
 
