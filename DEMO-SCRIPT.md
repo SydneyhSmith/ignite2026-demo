@@ -37,10 +37,10 @@ The pain it sets up: the app team's pipeline updates the image (`orders-web:v42`
 - **Demo:** in VS Code with Copilot, prompt: *"Extend main.bicep for the ticket: an AVM storage account (no shared key, container `orders-data`) and an AVM Key Vault, an Entra security group, an app registration with a service principal and a GitHub OIDC federated credential for `<owner>/orders-api`, and the role assignments. Use Azure Verified Modules and best practices."*
   - Show the agent calling `list_avm_metadata` and choosing AVM modules from the public registry.
   - **Planned snag:** the agent calls `get_bicep_file_diagnostics`, catches a warning and fixes its own code.
-  - **Key moments:** the group's role assignment uses `blobReaders.id`, the group declared in the same file (no copied object IDs). `roleDefinitionIdOrName: 'Storage Blob Data Reader'` / `roleDefinitions('Contributor')` means no role GUIDs.
+  - **Key moments:** the Entra objects (group, app registration, service principal, federated credential) go in a new `entra.bicep` using the Graph extension. Its outputs (the group's object ID, the service principal's object ID) feed the role assignments in `main.bicep`, so nobody copies an ID by hand. `roleDefinitionIdOrName: 'Storage Blob Data Reader'` / `roleDefinitions('Contributor')` means no role GUIDs.
   - Endpoints (`STORAGE_BLOB_ENDPOINT`, `KEYVAULT_URI`) are built from names, not module outputs, so there's no dependency cycle.
 - **Tip:** use the ARM MCP server to validate against the policies and conventions of the target environment.
-- **Takeaway:** AVM gives you vetted building blocks; the MCP server makes the AI use them correctly. The Graph extension means Entra lives in the same file as the infrastructure.
+- **Takeaway:** AVM gives you vetted building blocks; the MCP server makes the AI use them correctly. The Graph extension means Entra is Bicep too: same language, same repo, deployed just before the stack.
 - **Bridge:** "We have a working template. But what happens the second time we deploy it?"
 
 ## 2. Harden: make redeploys safe (7 min) · tag `02-harden`
@@ -49,7 +49,7 @@ The pain it sets up: the app team's pipeline updates the image (`orders-web:v42`
 
 - **Teach:** the classic "create if missing, otherwise leave it alone" problem, which used to need deployment scripts or pipeline flags.
 - **Demo:**
-  - **Entra:** `uniqueName` makes Graph resources idempotent (Graph creates with POST, ARM with PUT). **Do not** use `@nullIfNotFound()` or `existing` on Entra resources.
+  - **Entra (`entra.bicep`):** `uniqueName` makes Graph resources idempotent (Graph creates with POST, ARM with PUT). **Do not** use `@nullIfNotFound()` or `existing` on Entra resources.
   - **ARM only:** `@nullIfNotFound()` on the platform team's shared Log Analytics workspace. It exists in prod, not in dev, so dev falls back to a local workspace. Note: check a runtime property (`sharedLaw.?properties != null`), because `.id` is built even when the workspace doesn't exist.
   - **ARM only:** `this.existingResource()` on the container app image: `webImage ?? this.existingResource().?properties.?template.?containers[?0].?image ?? placeholderImage`.
     - **Beat:** redeploy *without* the `this` line → the site shows the placeholder. Add it back → v42 stays.
@@ -62,7 +62,7 @@ The pain it sets up: the app team's pipeline updates the image (`orders-web:v42`
 
 - **Teach:** a snapshot is a normalized, fully evaluated view of what a `.bicepparam` file deploys. Commit it, validate against it on every change.
 - **Demo:**
-  1. `bicep snapshot prod.bicepparam` (with `--subscription-id`, `--resource-group`, `--location`) and commit `prod.snapshot.json`. Point out the Graph resources are in it.
+  1. `bicep snapshot prod.bicepparam` (with `--subscription-id`, `--resource-group`, `--location`) and commit `prod.snapshot.json`. Say why Entra isn't in it: Graph resources are a separate regular deployment (`entra.bicep`), because `--mode validate` currently crashes on a snapshot that contains them.
   2. Refactor `main.bicep` into `web`, `data` and `identity` modules. `bicep snapshot prod.bicepparam --mode validate` shows **no diff**.
   3. Make a real change (a storage SKU). Validate shows **exactly one diff**.
 - **Takeaway:** a fast, offline safety net for refactors and code review.
@@ -99,7 +99,7 @@ The pain it sets up: the app team's pipeline updates the image (`orders-web:v42`
 
 - **Teach:** one action handles deployments and stacks, with validate, whatIf, create and delete. OIDC login, no secrets.
 - **Demo (`.github/workflows/deploy.yml`):**
-  - Open a PR: a job runs `bicep snapshot --mode validate` (offline gate), then `type: deploymentStack` / `operation: whatIf`.
+  - Open a PR: a job runs `bicep snapshot --mode validate` (offline gate), then `type: deploymentStack` / `operation: whatIf`. Read the result in the job log.
   - The `prod` environment has required reviewers. Approve; merge runs `operation: create`.
   - **Close the loop:** the federated credential we deployed lets the app team's `orders-api` repo sign in the same way.
   - **Payoff:** refresh the website. Storage and Key Vault are green, Legacy says "Retired".
@@ -117,6 +117,6 @@ The pain it sets up: the app team's pipeline updates the image (`orders-web:v42`
 ## Presenter notes
 
 - **Azure DevOps** is dropped from the live demo (GitHub Actions only). Mention it in one sentence if asked: same action, different YAML.
-- **Fallback if Graph can't live in the stack** (still unverified): deploy Entra first as a regular deployment and pass the group's object ID into the stack. `ignite2026/deploy.ps1` already does this.
+- **Entra is deployed separately** (`entra.bicep`, then the stack). In the pipeline the Entra deployment runs after approval and passes its object IDs to the stack as `BLOB_READER_GROUP_ID` and `ORDERS_API_SP_ID`. Locally: `scripts/deploy.ps1`. Still untested: whether Graph resources can deploy inside a stack.
 - **Reset between runs:** `scripts/reset.ps1` (delete stacks → purge Key Vault → permanently delete Entra objects → redeploy the starting template → pin v42). Record the AI section and the final refresh as backups. Keep a pre-greened fallback environment.
 - **Before going on stage:** upgrade `az` (stack-whatif needs a newer version than 2.67.0), match the local Bicep CLI to the workflow pin (v0.48.1), and fill in `platformSubscriptionId`.

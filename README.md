@@ -21,6 +21,8 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 |------|-----------|
 | `main.bicep`, `shared.bicepparam`, `dev.bicepparam`, `prod.bicepparam` | The **starting template**: container app, Application Insights, shared-or-local Log Analytics, legacy storage |
 | `release-v42.bicepparam` | Extends prod and sets `webImage` to deploy a release through Bicep |
+| `entra.bicep`, `entra.dev.bicepparam`, `entra.prod.bicepparam` | *(`after-ticket` branch)* Entra group, app registration, service principal and federated credential, deployed before the stack |
+| `scripts/deploy.ps1` | *(`after-ticket` branch)* Deploys Entra, then the stack, for one environment |
 | `bicepconfig.json` | Enables `ociEnabled` and adds the Microsoft Graph extension |
 | `scripts/reset.ps1` | Resets the demo to the starting state between runs |
 | `.github/workflows/deploy.yml` | Snapshot validate, stack what-if on PRs, stack create on merge (gated by the `prod` environment) |
@@ -54,6 +56,7 @@ The workflows run against the template at the repo root of whichever branch is c
 
 **GitHub**
 - Repository variables: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
+- `after-ticket` only: `BLOB_READER_GROUP_ID` and `ORDERS_API_SP_ID`, used by the PR what-if. Copy them from the deploy job summary after the first deploy.
 - A `prod` environment with required reviewers, and branch protection on `main`
 - Federated credentials on the deployment identity (the OIDC subject depends on how the job runs):
   - Jobs that use the `prod` environment: `repo:<owner>/<repo>:environment:prod`
@@ -62,6 +65,8 @@ The workflows run against the template at the repo root of whichever branch is c
 - The `orders-web` package on GitHub Container Registry set to **public**
 
 ## Deploy
+
+On `after-ticket`, run `./scripts/deploy.ps1 -Environment prod` (Entra first, then the stack). On `main` the stack alone is enough:
 
 ```powershell
 New-AzResourceGroupDeploymentStack -Name 'contoso-orders-prod' -ResourceGroupName 'rg-contoso-orders-prod' `
@@ -100,7 +105,7 @@ Deletes the stack, purges Key Vault, permanently deletes the Entra objects (othe
 
 ## Notes
 
-- `bicep snapshot` generates Graph resources, but `--mode validate` currently crashes (`KeyNotFoundException` in `SnapshotDiffer`) on a snapshot that contains them, in Bicep 0.47.16 and 0.48.1. The snapshot step works on `main` only; on `after-ticket` the CI snapshot validate job will fail until this is fixed or Entra is moved out of the snapshotted template.
+- Entra lives in `entra.bicep`, not the stack template, because `bicep snapshot --mode validate` crashes (`KeyNotFoundException` in `SnapshotDiffer`) on a snapshot that contains Graph resources, in Bicep 0.47.16 and 0.48.1. The stack template reads the Entra object IDs from the `BLOB_READER_GROUP_ID` and `ORDERS_API_SP_ID` environment variables (placeholders when unset, so snapshots stay deterministic; the CI snapshot validate job must not set them).
 - Key Vault purge protection is **off** so the demo can be reset. Do not copy that setting to production.
 - Do not use `@nullIfNotFound()` or `existing` on Entra resources; use `uniqueName`.
-- Whether Graph resources deploy inside a Deployment Stack, and how they appear in Stacks What-If, is not yet verified. If they don't, deploy Entra first as a regular deployment and pass the group object ID into the stack.
+- Not yet tested against Azure: the Entra deployment, the stack with the new role assignments, and the Graph permissions the pipeline identity needs.
