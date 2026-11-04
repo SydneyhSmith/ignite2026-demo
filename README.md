@@ -27,6 +27,7 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 | `bicepconfig.json` | Enables `ociEnabled` and adds the Microsoft Graph extension |
 | `scripts/reset.ps1` | Resets the demo to the starting state between runs |
 | `.github/workflows/deploy.yml` | Snapshot validate, stack what-if on PRs, stack create on merge (gated by the `prod` environment) |
+| `.github/workflows/deploy-only.yml` | Manually triggered stack create only, with no snapshot validation or what-if (gated by the `prod` environment) |
 | `.github/workflows/lint.yml` | Builds every `.bicep` and `.bicepparam` on PRs (no Azure login) |
 | `.github/workflows/build-image.yml` | Stands in for the app team's pipeline that builds `orders-web:<version>` |
 | `.github/pull_request_template.md`, `CODEOWNERS`, `dependabot.yml` | PR automation |
@@ -62,7 +63,7 @@ The workflows run against the template at the repo root of whichever branch is c
 - Federated credentials on the deployment identity (the OIDC subject depends on how the job runs):
   - Jobs that use the `prod` environment: `repo:<owner>/<repo>:environment:prod`
   - The what-if job on pull requests: `repo:<owner>/<repo>:pull_request`
-  - The snapshot validate job runs on both, so it also needs the `pull_request` credential, or the `ref:refs/heads/main` one for pushes
+- The snapshot validate job runs offline and needs no Azure credentials or subscription access.
 - The `orders-web` package on GitHub Container Registry set to **public**. Publish it by running the `build-image` workflow (version `v42`), then deploy with `release-v42.bicepparam` so the container app pulls it.
 
 Starting state of the site: Storage and Key Vault show "Not set up yet", Legacy storage shows "Connected with a shared key". After the ticket deploys, Storage and Key Vault go green and Legacy storage shows "Retired". Test locally with `pip install -r app/requirements.txt` and `flask --app app/app.py run`.
@@ -78,6 +79,8 @@ Open `http://localhost:8080` for the status page. Locally every card shows "Not 
 
 ## Deploy
 
+To run only the stack create in GitHub Actions, manually run **Contoso Orders deploy only** (`deploy-only.yml`). It uses the same deployment settings and `prod` environment approvals as `deploy.yml`, but skips snapshot validation and what-if. It is manual-only to avoid duplicate deployments on pushes; the existing deployment workflow is unchanged.
+
 On `after-ticket`, run `./scripts/deploy.ps1 -Environment prod` (Entra first, then the stack). On `main` the stack alone is enough:
 
 ```powershell
@@ -90,13 +93,13 @@ Add `-Force` to update an existing stack. To pin the website image: use `release
 
 ## Snapshots
 
-Snapshots embed the subscription and resource group, so generate them with the same values the workflow uses:
+Snapshots embed the subscription and resource group. Generate them with the fixed, non-secret scope used by snapshot validation, independent of the actual deployment target:
 
 ```powershell
-bicep snapshot prod.bicepparam --subscription-id <id> --resource-group rg-contoso-orders-prod --location westus3
+bicep snapshot prod.bicepparam --subscription-id 214eeb00-e5bc-4ff6-ab4c-170688d8174b --resource-group rg-contoso-orders-prod --location westus3
 ```
 
-Commit `prod.snapshot.json`. CI runs the same command with `--mode validate`.
+Commit `prod.snapshot.json`. CI runs the same command with `--mode validate`, without Azure login.
 
 ## Preview a change to the stack
 
@@ -105,7 +108,7 @@ az stack-whatif group create --name contoso-orders-prod --resource-group rg-cont
   --template-file main.bicep --parameters prod.bicepparam --action-on-unmanage deleteResources --deny-settings-mode none
 ```
 
-The PR workflow runs the equivalent with `azure/bicep-deploy`; read the result in the **Stack what-if (prod)** job log.
+The PR workflow runs the equivalent with `azure/bicep-deploy`; read the result in the **Stack what-if (prod)** job log. What-if runs after snapshot validation even if validation fails, unless the workflow is cancelled. Deployment still requires snapshot validation to pass.
 
 ## Reset between runs
 
