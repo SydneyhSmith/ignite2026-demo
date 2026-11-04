@@ -45,16 +45,16 @@ jobs:
 
       - uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # Fails when the committed snapshot no longer matches what the template would deploy.
       # Regenerate locally with the same flags and commit the result if the change is intended.
       - name: Validate prod snapshot
         run: >
           bicep snapshot prod.bicepparam --mode validate
-          --subscription-id "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+          --subscription-id "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
           --resource-group "$RESOURCE_GROUP"
           --location "$LOCATION"
 
@@ -68,9 +68,9 @@ jobs:
 
       - uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: What-if
         uses: azure/bicep-deploy@v2
@@ -79,7 +79,7 @@ jobs:
           operation: whatIf
           name: ${{ env.STACK_NAME }}
           scope: resourceGroup
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resource-group-name: ${{ env.RESOURCE_GROUP }}
           parameters-file: ./prod.bicepparam
           bicep-version: ${{ env.BICEP_VERSION }}
@@ -98,9 +98,9 @@ jobs:
 
       - uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Create stack
         uses: azure/bicep-deploy@v2
@@ -109,7 +109,7 @@ jobs:
           operation: create
           name: ${{ env.STACK_NAME }}
           scope: resourceGroup
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resource-group-name: ${{ env.RESOURCE_GROUP }}
           parameters-file: ./prod.bicepparam
           bicep-version: ${{ env.BICEP_VERSION }}
