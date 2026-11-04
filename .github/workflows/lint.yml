@@ -1,0 +1,44 @@
+name: Bicep lint
+
+# Fast PR check that needs no Azure login: every template and parameter file must compile.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.bicep'
+      - '**.bicepparam'
+      - 'bicepconfig.json'
+      - '.github/workflows/lint.yml'
+
+permissions:
+  contents: read
+
+env:
+  BICEP_VERSION: v0.48.1
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Bicep CLI
+        run: |
+          curl -Lo bicep "https://github.com/Azure/bicep/releases/download/${BICEP_VERSION}/bicep-linux-x64"
+          chmod +x bicep
+          sudo mv bicep /usr/local/bin/bicep
+          bicep --version
+
+      - name: Build templates and parameter files
+        run: |
+          set -e
+          find . -name '*.bicep' -not -path './.git/*' | while read -r f; do
+            echo "::group::bicep build $f"
+            bicep build "$f" --stdout > /dev/null
+            echo "::endgroup::"
+          done
+          find . -name '*.bicepparam' -not -path './.git/*' | while read -r f; do
+            echo "::group::bicep build-params $f"
+            bicep build-params "$f" --stdout > /dev/null
+            echo "::endgroup::"
+          done
