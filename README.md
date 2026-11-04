@@ -27,6 +27,7 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 | `bicepconfig.json` | Enables `ociEnabled` and adds the Microsoft Graph extension |
 | `scripts/reset.ps1` | Resets the demo to the starting state between runs |
 | `.github/workflows/deploy.yml` | Snapshot validate, stack what-if on PRs, stack create on merge (gated by the `prod` environment) |
+| `.github/workflows/deploy-only.yml` | Manually triggered stack create only, with no snapshot validation or what-if (gated by the `prod` environment) |
 | `.github/workflows/lint.yml` | Builds every `.bicep` and `.bicepparam` on PRs (no Azure login) |
 | `.github/workflows/build-image.yml` | Stands in for the app team's pipeline that builds `orders-web:<version>` |
 | `.github/pull_request_template.md`, `CODEOWNERS`, `dependabot.yml` | PR automation |
@@ -77,6 +78,8 @@ docker run --rm -p 8080:80 orders-web:v42
 Open `http://localhost:8080` for the status page. Locally every card shows "Not set up yet" except Legacy storage, which is controlled by `LEGACY_STORAGE_NAME`.
 
 ## Deploy
+
+To run only the stack create in GitHub Actions, manually run **Contoso Orders deploy only** (`deploy-only.yml`). It uses the same deployment settings and `prod` environment approvals as `deploy.yml`, but skips snapshot validation and what-if. It is manual-only to avoid duplicate deployments on pushes; the existing deployment workflow is unchanged.
 
 On `after-ticket`, run `./scripts/deploy.ps1 -Environment prod` (Entra first, then the stack). On `main` the stack alone is enough:
 
