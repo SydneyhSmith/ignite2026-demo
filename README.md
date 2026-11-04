@@ -21,7 +21,6 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 |------|-----------|
 | `main.bicep`, `shared.bicepparam`, `dev.bicepparam`, `prod.bicepparam` | The **starting template**: container app, Application Insights, shared-or-local Log Analytics, legacy storage |
 | `release-v42.bicepparam` | Extends prod and sets `webImage` to deploy a release through Bicep |
-| `after-ticket/` | The **finished template** after the ticket: AVM storage, AVM Key Vault, Entra group, app registration, federated credential, role assignments |
 | `bicepconfig.json` | Enables `ociEnabled` and adds the Microsoft Graph extension |
 | `scripts/reset.ps1` | Resets the demo to the starting state between runs |
 | `.github/workflows/deploy.yml` | Snapshot validate, stack what-if on PRs, stack create on merge (gated by the `prod` environment) |
@@ -29,7 +28,12 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 | `.github/workflows/build-image.yml` | Stands in for the app team's pipeline that builds `orders-web:<version>` |
 | `.github/pull_request_template.md`, `CODEOWNERS`, `dependabot.yml` | PR automation |
 
-The workflows run against the template at the repo root. As the demo progresses, bring the contents of `after-ticket/` up to the root (fix the `extends '../shared.bicepparam'` path to `'shared.bicepparam'` when you do).
+## Branches and tags
+
+- `main` (tag `00-ticket`): the starting template.
+- `after-ticket`: the finished template after the ticket (AVM storage, AVM Key Vault, Entra group, app registration, federated credential, role assignments).
+
+The workflows run against the template at the repo root of whichever branch is checked out.
 
 ## Prerequisites
 
@@ -96,6 +100,7 @@ Deletes the stack, purges Key Vault, permanently deletes the Entra objects (othe
 
 ## Notes
 
+- `bicep snapshot` generates Graph resources, but `--mode validate` currently crashes (`KeyNotFoundException` in `SnapshotDiffer`) on a snapshot that contains them, in Bicep 0.47.16 and 0.48.1. The snapshot step works on `main` only; on `after-ticket` the CI snapshot validate job will fail until this is fixed or Entra is moved out of the snapshotted template.
 - Key Vault purge protection is **off** so the demo can be reset. Do not copy that setting to production.
 - Do not use `@nullIfNotFound()` or `existing` on Entra resources; use `uniqueName`.
 - Whether Graph resources deploy inside a Deployment Stack, and how they appear in Stacks What-If, is not yet verified. If they don't, deploy Entra first as a regular deployment and pass the group object ID into the stack.
