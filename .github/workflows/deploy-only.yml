@@ -8,7 +8,6 @@ permissions:
   id-token: write # OIDC login, no secrets
 
 env:
-  BICEP_VERSION: v0.48.1
   STACK_NAME: contoso-orders-prod
   RESOURCE_GROUP: ignite2026
 
@@ -37,6 +36,5 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resource-group-name: ${{ env.RESOURCE_GROUP }}
           parameters-file: ./prod.bicepparam
-          bicep-version: ${{ env.BICEP_VERSION }}
           action-on-unmanage-resources: delete
           deny-settings-mode: none
