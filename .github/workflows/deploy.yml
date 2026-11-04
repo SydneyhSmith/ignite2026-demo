@@ -29,7 +29,7 @@ env:
   # Keep in step with the Bicep version used to generate the committed snapshots.
   BICEP_VERSION: v0.48.1
   STACK_NAME: contoso-orders-prod
-  RESOURCE_GROUP: rg-contoso-orders-prod
+  RESOURCE_GROUP: ignite2026
   LOCATION: westus3
 
 jobs:
@@ -48,16 +48,16 @@ jobs:
 
       - uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # Fails when the committed snapshot no longer matches what the template would deploy.
       # Regenerate locally with the same flags and commit the result if the change is intended.
       - name: Validate prod snapshot
         run: >
           bicep snapshot prod.bicepparam --mode validate
-          --subscription-id "${{ vars.AZURE_SUBSCRIPTION_ID }}"
+          --subscription-id "${{ secrets.AZURE_SUBSCRIPTION_ID }}"
           --resource-group "$RESOURCE_GROUP"
           --location "$LOCATION"
 
@@ -71,9 +71,9 @@ jobs:
 
       - uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: What-if
         uses: azure/bicep-deploy@v2
@@ -88,7 +88,6 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           resource-group-name: ${{ env.RESOURCE_GROUP }}
           parameters-file: ./prod.bicepparam
-          bicep-version: ${{ env.BICEP_VERSION }}
           action-on-unmanage-resources: delete
           deny-settings-mode: none
 
@@ -104,9 +103,9 @@ jobs:
 
       - uses: azure/login@v3
         with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy Entra objects
         id: entra
@@ -119,7 +118,6 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           resource-group-name: ${{ env.RESOURCE_GROUP }}
           parameters-file: ./entra.prod.bicepparam
-          bicep-version: ${{ env.BICEP_VERSION }}
 
       - name: Show Entra object IDs
         run: |
@@ -144,6 +142,5 @@ jobs:
           subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           resource-group-name: ${{ env.RESOURCE_GROUP }}
           parameters-file: ./prod.bicepparam
-          bicep-version: ${{ env.BICEP_VERSION }}
           action-on-unmanage-resources: delete
           deny-settings-mode: none
