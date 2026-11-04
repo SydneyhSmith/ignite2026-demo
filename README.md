@@ -28,6 +28,7 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 | `.github/workflows/deploy.yml` | Snapshot validate, stack what-if on PRs, stack create on merge (gated by the `prod` environment) |
 | `.github/workflows/lint.yml` | Builds every `.bicep` and `.bicepparam` on PRs (no Azure login) |
 | `.github/workflows/build-image.yml` | Stands in for the app team's pipeline that builds `orders-web:<version>` |
+| `Dockerfile`, `web/server.mjs` | Dependency-free demo website, listening on port 80 |
 | `.github/pull_request_template.md`, `CODEOWNERS`, `dependabot.yml` | PR automation |
 
 ## Branches and tags
@@ -65,6 +66,18 @@ The workflows run against the template at the repo root of whichever branch is c
 - The `orders-web` package on GitHub Container Registry set to **public**
 
 ## Deploy
+
+Build and run the website locally:
+
+```sh
+docker build --build-arg APP_VERSION=v42 -t orders-web:v42 .
+docker run --rm -p 8080:80 orders-web:v42
+```
+
+Open `http://localhost:8080`. The page refreshes every 10 seconds and reports configuration
+from `STORAGE_BLOB_ENDPOINT`, `KEYVAULT_URI`, and `LEGACY_STORAGE_NAME`; it does not
+verify Azure connectivity or permissions. Run the `build-image` workflow to publish
+the image to GHCR before deploying it.
 
 On `after-ticket`, run `./scripts/deploy.ps1 -Environment prod` (Entra first, then the stack). On `main` the stack alone is enough:
 
