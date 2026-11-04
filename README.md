@@ -62,7 +62,7 @@ The workflows run against the template at the repo root of whichever branch is c
 - Federated credentials on the deployment identity (the OIDC subject depends on how the job runs):
   - Jobs that use the `prod` environment: `repo:<owner>/<repo>:environment:prod`
   - The what-if job on pull requests: `repo:<owner>/<repo>:pull_request`
-  - The snapshot validate job runs on both, so it also needs the `pull_request` credential, or the `ref:refs/heads/main` one for pushes
+- The snapshot validate job runs offline and needs no Azure credentials or subscription access.
 - The `orders-web` package on GitHub Container Registry set to **public**. Publish it by running the `build-image` workflow (version `v42`), then deploy with `release-v42.bicepparam` so the container app pulls it.
 
 Starting state of the site: Storage and Key Vault show "Not set up yet", Legacy storage shows "Connected with a shared key". After the ticket deploys, Storage and Key Vault go green and Legacy storage shows "Retired". Test locally with `pip install -r app/requirements.txt` and `flask --app app/app.py run`.
@@ -90,13 +90,13 @@ Add `-Force` to update an existing stack. To pin the website image: use `release
 
 ## Snapshots
 
-Snapshots embed the subscription and resource group, so generate them with the same values the workflow uses:
+Snapshots embed the subscription and resource group. Generate them with the fixed, non-secret scope used by snapshot validation, independent of the actual deployment target:
 
 ```powershell
-bicep snapshot prod.bicepparam --subscription-id <id> --resource-group rg-contoso-orders-prod --location westus3
+bicep snapshot prod.bicepparam --subscription-id 214eeb00-e5bc-4ff6-ab4c-170688d8174b --resource-group rg-contoso-orders-prod --location westus3
 ```
 
-Commit `prod.snapshot.json`. CI runs the same command with `--mode validate`.
+Commit `prod.snapshot.json`. CI runs the same command with `--mode validate`, without Azure login.
 
 ## Preview a change to the stack
 
