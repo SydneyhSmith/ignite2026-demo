@@ -1,0 +1,169 @@
+{
+  "predictedResources": [
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stlegacyjq5rrypxlicqk",
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "stlegacyjq5rrypxlicqk",
+      "apiVersion": "2023-05-01",
+      "location": "westus3",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "tags": {
+        "owner": "platform-engineering",
+        "costCenter": "contoso-orders",
+        "workload": "contoso-orders",
+        "environment": "prod",
+        "status": "legacy-retire-after-migration"
+      },
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": false,
+        "allowSharedKeyAccess": true,
+        "supportsHttpsTrafficOnly": true
+      }
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stlegacyjq5rrypxlicqk/blobServices/default",
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "name": "stlegacyjq5rrypxlicqk/default",
+      "apiVersion": "2023-05-01"
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stlegacyjq5rrypxlicqk/blobServices/default/containers/orders-export",
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "name": "stlegacyjq5rrypxlicqk/default/orders-export",
+      "apiVersion": "2023-05-01"
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.OperationalInsights/workspaces/log-orders-prod",
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "name": "log-orders-prod",
+      "apiVersion": "2023-09-01",
+      "location": "westus3",
+      "tags": {
+        "owner": "platform-engineering",
+        "costCenter": "contoso-orders",
+        "workload": "contoso-orders",
+        "environment": "prod"
+      },
+      "properties": {
+        "sku": {
+          "name": "PerGB2018"
+        },
+        "retentionInDays": 30
+      }
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Insights/components/appi-orders-prod",
+      "type": "Microsoft.Insights/components",
+      "name": "appi-orders-prod",
+      "apiVersion": "2020-02-02",
+      "location": "westus3",
+      "kind": "web",
+      "tags": {
+        "owner": "platform-engineering",
+        "costCenter": "contoso-orders",
+        "workload": "contoso-orders",
+        "environment": "prod"
+      },
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[if(not(equals(tryGet(reference('/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-platform-monitoring/providers/Microsoft.OperationalInsights/workspaces/law-platform-shared', '2023-09-01', 'full'), 'properties'), null())), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('platformSubscriptionId'), parameters('platformResourceGroupName')), 'Microsoft.OperationalInsights/workspaces', parameters('sharedLogAnalyticsName')), resourceId('Microsoft.OperationalInsights/workspaces', format('log-{0}', variables('suffix'))))]"
+      }
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/managedEnvironments/cae-orders-prod",
+      "type": "Microsoft.App/managedEnvironments",
+      "name": "cae-orders-prod",
+      "apiVersion": "2024-03-01",
+      "location": "westus3",
+      "tags": {
+        "owner": "platform-engineering",
+        "costCenter": "contoso-orders",
+        "workload": "contoso-orders",
+        "environment": "prod"
+      },
+      "properties": {
+        "appLogsConfiguration": {
+          "destination": "azure-monitor"
+        }
+      }
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/managedEnvironments/cae-orders-prod/providers/Microsoft.Insights/diagnosticSettings/to-log-analytics",
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "name": "to-log-analytics",
+      "apiVersion": "2021-05-01-preview",
+      "properties": {
+        "workspaceId": "[if(not(equals(tryGet(reference('/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-platform-monitoring/providers/Microsoft.OperationalInsights/workspaces/law-platform-shared', '2023-09-01', 'full'), 'properties'), null())), extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', parameters('platformSubscriptionId'), parameters('platformResourceGroupName')), 'Microsoft.OperationalInsights/workspaces', parameters('sharedLogAnalyticsName')), resourceId('Microsoft.OperationalInsights/workspaces', format('log-{0}', variables('suffix'))))]",
+        "logs": [
+          {
+            "categoryGroup": "allLogs",
+            "enabled": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web",
+      "type": "Microsoft.App/containerApps",
+      "name": "ca-orders-prod-web",
+      "apiVersion": "2024-03-01",
+      "location": "westus3",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "tags": {
+        "owner": "platform-engineering",
+        "costCenter": "contoso-orders",
+        "workload": "contoso-orders",
+        "environment": "prod"
+      },
+      "properties": {
+        "managedEnvironmentId": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/managedEnvironments/cae-orders-prod",
+        "configuration": {
+          "ingress": {
+            "external": true,
+            "targetPort": 80,
+            "transport": "auto"
+          }
+        },
+        "template": {
+          "containers": [
+            {
+              "name": "web",
+              "image": "[coalesce(coalesce(null(), tryGet(tryGet(tryGet(tryGet(tryGet(target('full'), 'properties'), 'template'), 'containers'), 0), 'image')), parameters('placeholderImage'))]",
+              "resources": {
+                "cpu": 0.5,
+                "memory": "1Gi"
+              },
+              "env": [
+                {
+                  "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                  "value": "[reference('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Insights/components/appi-orders-prod', '2020-02-02').ConnectionString]"
+                },
+                {
+                  "name": "LEGACY_STORAGE_NAME",
+                  "value": "stlegacyjq5rrypxlicqk"
+                }
+              ]
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 3
+          }
+        }
+      }
+    }
+  ],
+  "diagnostics": [],
+  "outputs": {
+    "siteUrl": "[format('https://{0}', reference('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web', '2024-03-01').configuration.ingress.fqdn)]",
+    "usingSharedWorkspace": "[not(equals(tryGet(reference('/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-platform-monitoring/providers/Microsoft.OperationalInsights/workspaces/law-platform-shared', '2023-09-01', 'full'), 'properties'), null()))]",
+    "legacyStorageAccountName": "stlegacyjq5rrypxlicqk",
+    "webPrincipalId": "[reference('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.App/containerApps/ca-orders-prod-web', '2024-03-01', 'full').identity.principalId]"
+  }
+}
