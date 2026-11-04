@@ -30,6 +30,7 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
+          context: ./app
           push: true
           build-args: APP_VERSION=${{ inputs.version }}
           tags: ghcr.io/${{ steps.image.outputs.owner }}/orders-web:${{ inputs.version }}

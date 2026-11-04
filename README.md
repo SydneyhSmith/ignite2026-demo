@@ -23,6 +23,7 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 | `release-v42.bicepparam` | Extends prod and sets `webImage` to deploy a release through Bicep |
 | `entra.bicep`, `entra.dev.bicepparam`, `entra.prod.bicepparam` | *(`after-ticket` branch)* Entra group, app registration, service principal and federated credential, deployed before the stack |
 | `scripts/deploy.ps1` | *(`after-ticket` branch)* Deploys Entra, then the stack, for one environment |
+| `app/` | The Contoso Orders status page (Flask, managed identity). Shows Storage, Key Vault and Legacy storage cards that flip as the infrastructure changes; the code never changes between demo steps |
 | `bicepconfig.json` | Enables `ociEnabled` and adds the Microsoft Graph extension |
 | `scripts/reset.ps1` | Resets the demo to the starting state between runs |
 | `.github/workflows/deploy.yml` | Snapshot validate, stack what-if on PRs, stack create on merge (gated by the `prod` environment) |
@@ -62,7 +63,9 @@ The workflows run against the template at the repo root of whichever branch is c
   - Jobs that use the `prod` environment: `repo:<owner>/<repo>:environment:prod`
   - The what-if job on pull requests: `repo:<owner>/<repo>:pull_request`
   - The snapshot validate job runs on both, so it also needs the `pull_request` credential, or the `ref:refs/heads/main` one for pushes
-- The `orders-web` package on GitHub Container Registry set to **public**
+- The `orders-web` package on GitHub Container Registry set to **public**. Publish it by running the `build-image` workflow (version `v42`), then deploy with `release-v42.bicepparam` so the container app pulls it.
+
+Starting state of the site: Storage and Key Vault show "Not set up yet", Legacy storage shows "Connected with a shared key". After the ticket deploys, Storage and Key Vault go green and Legacy storage shows "Retired". Test locally with `pip install -r app/requirements.txt` and `flask --app app/app.py run`.
 
 ## Deploy
 
