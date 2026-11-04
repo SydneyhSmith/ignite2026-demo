@@ -57,7 +57,8 @@ jobs:
 
   whatif:
     name: Stack what-if (prod)
-    if: github.event_name == 'pull_request'
+    # Preview changes even when snapshot validation fails, unless the run is cancelled.
+    if: ${{ !cancelled() && github.event_name == 'pull_request' }}
     needs: validate
     runs-on: ubuntu-latest
     steps:

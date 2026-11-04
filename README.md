@@ -108,7 +108,7 @@ az stack-whatif group create --name contoso-orders-prod --resource-group rg-cont
   --template-file main.bicep --parameters prod.bicepparam --action-on-unmanage deleteResources --deny-settings-mode none
 ```
 
-The PR workflow runs the equivalent with `azure/bicep-deploy`; read the result in the **Stack what-if (prod)** job log.
+The PR workflow runs the equivalent with `azure/bicep-deploy`; read the result in the **Stack what-if (prod)** job log. What-if runs after snapshot validation even if validation fails, unless the workflow is cancelled. Deployment still requires snapshot validation to pass.
 
 ## Reset between runs
 
