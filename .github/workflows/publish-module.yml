@@ -1,0 +1,80 @@
+name: Publish Bicep module
+
+# Publishes a Bicep module as an OCI artifact to GitHub Container Registry, under the
+# repository owner (a user or an org): ghcr.io/<owner>/modules/<name>:<version>
+# Consume it with: module x 'br:ghcr.io/<owner>/modules/<name>:<version>' = { ... }
+on:
+  workflow_dispatch:
+    inputs:
+      module-path:
+        description: Path to the module file
+        default: modules/data.bicep
+      module-name:
+        description: Registry name, without the owner or modules/ prefix
+        default: orders-data
+      version:
+        description: Version tag (published versions are immutable)
+        default: v1
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  BICEP_VERSION: v0.48.1
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Bicep CLI
+        run: |
+          curl -Lo bicep "https://github.com/Azure/bicep/releases/download/${BICEP_VERSION}/bicep-linux-x64"
+          chmod +x bicep
+          sudo mv bicep /usr/local/bin/bicep
+          bicep --version
+
+      - name: Resolve target
+        id: target
+        env:
+          MODULE_PATH: ${{ inputs.module-path }}
+          MODULE_NAME: ${{ inputs.module-name }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [[ ! -f "$MODULE_PATH" ]]; then
+            echo "::error::Module file '$MODULE_PATH' not found on this ref."
+            exit 1
+          fi
+          if [[ ! "$MODULE_NAME" =~ ^[a-z0-9][a-z0-9._/-]*$ || ! "$VERSION" =~ ^[A-Za-z0-9_][A-Za-z0-9._-]*$ ]]; then
+            echo "::error::Module name must be lowercase and the version must be a valid tag."
+            exit 1
+          fi
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "target=br:ghcr.io/${owner}/modules/${MODULE_NAME}:${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Build module
+        env:
+          MODULE_PATH: ${{ inputs.module-path }}
+        run: bicep build "$MODULE_PATH" --stdout > /dev/null
+
+      # Bicep reads the Docker credential store, so a normal registry login is all it needs.
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish module
+        env:
+          MODULE_PATH: ${{ inputs.module-path }}
+          TARGET: ${{ steps.target.outputs.target }}
+        run: |
+          bicep publish "$MODULE_PATH" --target "$TARGET"
+          {
+            echo "### Published"
+            echo "\`${TARGET#br:}\`"
+            echo
+            echo "Use it with: \`module x '${TARGET}' = { ... }\`"
+          } >> "$GITHUB_STEP_SUMMARY"

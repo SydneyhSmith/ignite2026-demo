@@ -30,6 +30,7 @@ Demo repo for the Ignite 2026 session *"The Ignite Special: Azure deployments in
 | `.github/workflows/deploy-only.yml` | Manually triggered stack create only, with no snapshot validation or what-if (gated by the `prod` environment) |
 | `.github/workflows/lint.yml` | Builds every `.bicep` and `.bicepparam` on PRs (no Azure login) |
 | `.github/workflows/build-image.yml` | Stands in for the app team's pipeline that builds `orders-web:<version>` |
+| `.github/workflows/publish-module.yml` | Manual workflow that publishes a Bicep module to `ghcr.io/<owner>/modules/<name>:<version>` as an OCI artifact |
 | `.github/pull_request_template.md`, `CODEOWNERS`, `dependabot.yml` | PR automation |
 
 ## Branches and tags
