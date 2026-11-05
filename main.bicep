@@ -1,5 +1,5 @@
 // =====================================================================
-// Contoso Orders - web app baseline (BEFORE the ticket)
+// Contoso Orders - web app, storage and Key Vault
 // Deployed as a Deployment Stack per environment (dev, prod).
 // =====================================================================
 
@@ -43,6 +43,64 @@ var allTags = union(tags, {
   workload: 'contoso-orders'
   environment: environmentName
 })
+
+// ---------------------------------------------------------------------
+// Data services (Entra authentication only)
+// ---------------------------------------------------------------------
+
+module storage 'br/public:avm/res/storage/storage-account:0.33.1' = {
+  params: {
+    name: 'storders${uniqueString(resourceGroup().id, appName, environmentName)}'
+    location: location
+    tags: allTags
+    skuName: 'Standard_LRS'
+    allowSharedKeyAccess: false
+    defaultToOAuthAuthentication: true
+    allowBlobPublicAccess: false
+    minimumTlsVersion: 'TLS1_2'
+    supportsHttpsTrafficOnly: true
+    publicNetworkAccess: 'Enabled'
+    networkAcls: {
+      defaultAction: 'Allow'
+      bypass: 'None'
+    }
+    blobServices: {
+      containerDeleteRetentionPolicyEnabled: true
+      containerDeleteRetentionPolicyDays: 7
+      deleteRetentionPolicyEnabled: true
+      deleteRetentionPolicyDays: 7
+      containers: [
+        {
+          name: 'orders-data'
+          publicAccess: 'None'
+        }
+      ]
+    }
+    enableTelemetry: false
+  }
+}
+
+module keyVault 'br/public:avm/res/key-vault/vault:0.14.2' = {
+  params: {
+    name: 'kv-orders-${uniqueString(resourceGroup().id, appName, environmentName)}'
+    location: location
+    tags: allTags
+    sku: 'standard'
+    enableRbacAuthorization: true
+    enableSoftDelete: true
+    enablePurgeProtection: true
+    softDeleteRetentionInDays: 90
+    enableVaultForDeployment: false
+    enableVaultForTemplateDeployment: false
+    enableVaultForDiskEncryption: false
+    publicNetworkAccess: 'Enabled'
+    networkAcls: {
+      defaultAction: 'Allow'
+      bypass: 'None'
+    }
+    enableTelemetry: false
+  }
+}
 
 // ---------------------------------------------------------------------
 // Monitoring
@@ -150,6 +208,14 @@ resource web 'Microsoft.App/containerApps@2024-03-01' = {
               name: 'LEGACY_STORAGE_NAME'
               value: legacyStorage.name
             }
+            {
+              name: 'STORAGE_BLOB_ENDPOINT'
+              value: storage.outputs.primaryBlobEndpoint
+            }
+            {
+              name: 'KEYVAULT_URI'
+              value: keyVault.outputs.uri
+            }
           ]
         }
       ]
@@ -197,3 +263,12 @@ output siteUrl string = 'https://${web.properties.configuration.ingress.fqdn}'
 output webPrincipalId string = web.identity.principalId
 output usingSharedWorkspace bool = sharedLaw.?properties != null
 output legacyStorageAccountName string = legacyStorage.name
+
+@description('Pass these outputs to entra.bicep after deploying the stack.')
+output dataServices {
+  storageAccountName: string
+  keyVaultName: string
+} = {
+  storageAccountName: storage.outputs.name
+  keyVaultName: keyVault.outputs.name
+}

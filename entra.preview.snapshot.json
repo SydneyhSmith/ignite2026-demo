@@ -1,0 +1,104 @@
+{
+  "predictedResources": [
+    {
+      "id": "[resourceId('214eeb00-e5bc-4ff6-ab4c-170688d8174b', 'rg-contoso-orders-prod', 'Microsoft.Authorization/roleAssignments', coalesce(null(), guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b', 'rg-contoso-orders-prod', '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c', reference('githubPrincipal').id)))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[coalesce(null(), guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b', 'rg-contoso-orders-prod', '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c', reference('githubPrincipal').id))]",
+      "apiVersion": "2022-04-01",
+      "properties": {
+        "roleDefinitionId": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/b24988ac-6180-42a0-ab88-20f7382dd24c",
+        "principalId": "[reference('githubPrincipal').id]",
+        "description": null,
+        "principalType": "ServicePrincipal",
+        "delegatedManagedIdentityResourceId": null,
+        "conditionVersion": null,
+        "condition": null
+      }
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersbbxfone5tdwhg/providers/Microsoft.Authorization/roleAssignments/b0086d3c-1bc2-59dd-91c9-adda4ec69f4e",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "b0086d3c-1bc2-59dd-91c9-adda4ec69f4e",
+      "apiVersion": "2022-04-01",
+      "properties": {
+        "roleDefinitionId": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "principalId": "00000000-0000-0000-0000-000000000001",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "id": "[extensionResourceId('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersbbxfone5tdwhg', 'Microsoft.Authorization/roleAssignments', guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersbbxfone5tdwhg', reference('dataAccessGroup').id, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe'))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.Storage/storageAccounts/stordersbbxfone5tdwhg', reference('dataAccessGroup').id, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+      "apiVersion": "2022-04-01",
+      "properties": {
+        "roleDefinitionId": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/ba92f5b4-2d11-453d-a403-e96b0029c9fe",
+        "principalId": "[reference('dataAccessGroup').id]",
+        "principalType": "Group"
+      }
+    },
+    {
+      "id": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.KeyVault/vaults/kv-orders-bbxfone5tdwhg/providers/Microsoft.Authorization/roleAssignments/79367393-6159-5f48-96c2-d5e1228841ca",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "79367393-6159-5f48-96c2-d5e1228841ca",
+      "apiVersion": "2022-04-01",
+      "properties": {
+        "roleDefinitionId": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/4633458b-17de-408a-b874-0445c86b69e6",
+        "principalId": "00000000-0000-0000-0000-000000000001",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "id": "[extensionResourceId('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.KeyVault/vaults/kv-orders-bbxfone5tdwhg', 'Microsoft.Authorization/roleAssignments', guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.KeyVault/vaults/kv-orders-bbxfone5tdwhg', reference('dataAccessGroup').id, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/4633458b-17de-408a-b874-0445c86b69e6'))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "name": "[guid('/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod/providers/Microsoft.KeyVault/vaults/kv-orders-bbxfone5tdwhg', reference('dataAccessGroup').id, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/4633458b-17de-408a-b874-0445c86b69e6')]",
+      "apiVersion": "2022-04-01",
+      "properties": {
+        "roleDefinitionId": "/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/providers/Microsoft.Authorization/roleDefinitions/4633458b-17de-408a-b874-0445c86b69e6",
+        "principalId": "[reference('dataAccessGroup').id]",
+        "principalType": "Group"
+      }
+    },
+    {
+      "properties": {
+        "uniqueName": "[format('orders-github-{0}', uniqueString(tenant().tenantId, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod', 'orders', 'prod'))]",
+        "displayName": "app-orders-prod-github",
+        "signInAudience": "AzureADMyOrg"
+      },
+      "type": "Microsoft.Graph/applications@v1.0"
+    },
+    {
+      "properties": {
+        "name": "github-prod",
+        "description": "GitHub Actions prod environment for sydneyhsmith/ignite2026-demo.",
+        "issuer": "https://token.actions.githubusercontent.com",
+        "audiences": [
+          "api://AzureADTokenExchange"
+        ],
+        "subject": "repo:sydneyhsmith/ignite2026-demo:environment:prod"
+      },
+      "type": "Microsoft.Graph/applications/federatedIdentityCredentials@v1.0"
+    },
+    {
+      "properties": {
+        "uniqueName": "[format('orders-data-{0}', uniqueString(tenant().tenantId, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod', 'orders', 'prod'))]",
+        "displayName": "sg-orders-prod-data",
+        "mailNickname": "[format('orders-data-{0}', uniqueString(tenant().tenantId, '/subscriptions/214eeb00-e5bc-4ff6-ab4c-170688d8174b/resourceGroups/rg-contoso-orders-prod', 'orders', 'prod'))]",
+        "mailEnabled": false,
+        "securityEnabled": true
+      },
+      "type": "Microsoft.Graph/groups@v1.0"
+    },
+    {
+      "properties": {
+        "appId": "[reference('githubApp').appId]",
+        "accountEnabled": true
+      },
+      "type": "Microsoft.Graph/servicePrincipals@v1.0"
+    }
+  ],
+  "diagnostics": [],
+  "outputs": {
+    "identities": "[createObject('tenantId', tenant().tenantId, 'clientId', reference('githubApp').appId, 'servicePrincipalId', reference('githubPrincipal').id, 'securityGroupId', reference('dataAccessGroup').id)]"
+  }
+}
