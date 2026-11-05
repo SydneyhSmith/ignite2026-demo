@@ -272,3 +272,17 @@ output dataServices {
   storageAccountName: storage.outputs.name
   keyVaultName: keyVault.outputs.name
 }
+
+@description('Object ID of the group that should read blobs.')
+param blobReaderGroupId string
+module data 'br:ghcr.io/sydneyhsmith/modules/orders-data:v1' = {
+  name: 'orders-data'
+  params: {
+    name: 'orders'
+    location: location
+    containerName: 'orders-data'
+    readerPrincipalIds: [blobReaderGroupId]
+    readerPrincipalType: 'Group'
+    tags: { env: 'prod' }
+  }
+}
