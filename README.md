@@ -60,7 +60,7 @@ The workflows run against the template at the repo root of whichever branch is c
 
 **GitHub**
 - Repository variables: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
-- `after-ticket` only: `BLOB_READER_GROUP_ID` and `ORDERS_API_SP_ID`, used by the PR what-if. Copy them from the deploy job summary after the first deploy.
+- `after-ticket` only: `BLOB_READER_GROUP_ID` and `ORDERS_API_SP_ID`, used by the PR what-if. Set them under **Settings > Secrets and variables > Actions > Variables**. Copy the real group object ID and service principal object ID from the deploy job summary after the first deploy (or provision Entra first with `scripts/deploy.ps1`). Do not use application/client IDs or all-zero placeholders. What-if checks these values before Azure login and fails with an explicit configuration error if either is missing or malformed.
 - A `prod` environment with required reviewers, and branch protection on `main`
 - Federated credentials on the deployment identity (the OIDC subject depends on how the job runs):
   - Jobs that use the `prod` environment: `repo:<owner>/<repo>:environment:prod`
@@ -101,7 +101,7 @@ Snapshots embed the subscription and resource group. Generate them with the fixe
 bicep snapshot prod.bicepparam --subscription-id 214eeb00-e5bc-4ff6-ab4c-170688d8174b --resource-group rg-contoso-orders-prod --location westus3
 ```
 
-Commit `prod.snapshot.json`. CI runs the same command with `--mode validate`, without Azure login.
+Commit `prod.snapshot.json`. CI runs the same command with `--mode validate`, without Azure login or access to secrets. Keep this fixed scope independent of the deployment target, and leave the Entra object ID environment variables unset so the snapshot uses deterministic placeholders.
 
 ## Preview a change to the stack
 
