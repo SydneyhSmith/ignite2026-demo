@@ -1,4 +1,3 @@
-// Deploys a release through Bicep: prod + a pinned image.
 using 'main.bicep'
 
 extends 'prod.bicepparam'
