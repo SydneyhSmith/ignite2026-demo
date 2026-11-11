@@ -60,7 +60,7 @@ jobs:
         run: bicep build "$MODULE_PATH" --stdout > /dev/null
 
       # Bicep reads the Docker credential store, so a normal registry login is all it needs.
-      - uses: docker/login-action@v3
+      - uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
